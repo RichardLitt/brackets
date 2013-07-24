@@ -84,6 +84,11 @@ define(function (require, exports, module) {
 
             runs(function () {
                 if (specCount === totalSpecs) {
+                    testWindow              = null;
+                    CommandManager          = null;
+                    Commands                = null;
+                    DocumentCommandHandlers = null;
+                    DocumentManager         = null;
                     SpecRunnerUtils.closeTestWindow();
                 }
             });
