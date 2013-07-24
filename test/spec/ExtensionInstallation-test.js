@@ -52,7 +52,8 @@ define(function (require, exports, module) {
         packageData = undefined;
         
         runs(function () {
-            waitsForDone(Package._getNodeConnectionDeferred(), "ExtensionManagerDomain load", 5000);
+            // Matches NodeConnection CONNECTION_TIMEOUT
+            waitsForDone(Package._getNodeConnectionDeferred(), "ExtensionManagerDomain load", 10000);
         });
         
         runs(function () {
