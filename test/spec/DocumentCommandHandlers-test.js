@@ -43,34 +43,46 @@ define(function (require, exports, module) {
     describe("DocumentCommandHandlers", function () {
         this.category = "integration";
 
-        var testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
-            testWindow;
+        var topLevelSuite = this,
+            testPath = SpecRunnerUtils.getTestPath("/spec/DocumentCommandHandlers-test-files"),
+            testWindow,
+            specCount = 0,
+            totalSpecs;
 
         var TEST_JS_CONTENT = 'var myContent="This is awesome!";';
         var TEST_JS_NEW_CONTENT = "hello world";
         var TEST_JS_SECOND_NEW_CONTENT = "hello world 2";
 
         beforeEach(function () {
-            SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
-                testWindow = w;
+            if (!specCount) {
+                totalSpecs = SpecRunnerUtils.countSpecs(topLevelSuite);
+            }
 
-                // Load module instances from brackets.test
-                CommandManager      = testWindow.brackets.test.CommandManager;
-                Commands            = testWindow.brackets.test.Commands;
-                DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
-                DocumentManager     = testWindow.brackets.test.DocumentManager;
-                Dialogs             = testWindow.brackets.test.Dialogs;
-                FileViewController  = testWindow.brackets.test.FileViewController;
-            });
+            if (!testWindow) {
+                SpecRunnerUtils.createTestWindowAndRun(this, function (w) {
+                    testWindow = w;
+
+                    // Load module instances from brackets.test
+                    CommandManager      = testWindow.brackets.test.CommandManager;
+                    Commands            = testWindow.brackets.test.Commands;
+                    DocumentCommandHandlers = testWindow.brackets.test.DocumentCommandHandlers;
+                    DocumentManager     = testWindow.brackets.test.DocumentManager;
+                    Dialogs             = testWindow.brackets.test.Dialogs;
+                    FileViewController  = testWindow.brackets.test.FileViewController;
+                });
+            }
+
+            specCount++;
         });
 
         afterEach(function () {
-            testWindow              = null;
-            CommandManager          = null;
-            Commands                = null;
-            DocumentCommandHandlers = null;
-            DocumentManager         = null;
-            SpecRunnerUtils.closeTestWindow();
+            testWindow.closeAll();
+
+            runs(function () {
+                if (specCount === totalSpecs) {
+                    SpecRunnerUtils.closeTestWindow();
+                }
+            });
         });
 
 

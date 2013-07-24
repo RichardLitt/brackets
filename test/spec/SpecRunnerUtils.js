@@ -281,6 +281,10 @@ define(function (require, exports, module) {
             _testWindow.executeCommand = function executeCommand(cmd, args) {
                 return _testWindow.brackets.test.CommandManager.execute(cmd, args);
             };
+
+            _testWindow.closeAll = function closeAll() {
+                _testWindow.brackets.test.DocumentManager.closeAll();
+            };
         });
 
         // FIXME (issue #249): Need an event or something a little more reliable...
@@ -947,6 +951,26 @@ define(function (require, exports, module) {
             }
         });
     });
+
+    function countSpecs(suiteOrSpec) {
+        var children = suiteOrSpec.children && typeof suiteOrSpec.children === "function" && suiteOrSpec.children();
+
+        if (Array.isArray(children)) {
+            var childCount = 0;
+
+            children.forEach(function (child) {
+                childCount += countSpecs(child);
+            });
+
+            return childCount;
+        }
+
+        if (jasmine.getEnv().specFilter(suiteOrSpec)) {
+            return 1;
+        }
+
+        return 0;
+    }
     
     exports.TEST_PREFERENCES_KEY    = TEST_PREFERENCES_KEY;
     
@@ -981,4 +1005,5 @@ define(function (require, exports, module) {
     exports.getResultMessage                = getResultMessage;
     exports.parseOffsetsFromText            = parseOffsetsFromText;
     exports.findDOMText                     = findDOMText;
+    exports.countSpecs                      = countSpecs;
 });
