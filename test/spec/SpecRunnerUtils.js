@@ -104,6 +104,25 @@ define(function (require, exports, module) {
     function getTempDirectory() {
         return getTestPath("/temp");
     }
+
+    /**
+     * Create the temporary unit test project directory.
+     */
+    function createTempDirectory() {
+        var deferred = new $.Deferred();
+
+        runs(function () {
+            brackets.fs.makedir(getTempDirectory(), 0, function (err) {
+                if (err && err !== brackets.fs.ERR_FILE_EXISTS) {
+                    deferred.reject(err);
+                } else {
+                    deferred.resolve();
+                }
+            });
+        });
+
+        waitsForDone(deferred, "Create temp directory", 500);
+    }
     
     function getBracketsSourceRoot() {
         var path = window.location.pathname;
@@ -979,6 +998,7 @@ define(function (require, exports, module) {
     exports.getTestRoot                     = getTestRoot;
     exports.getTestPath                     = getTestPath;
     exports.getTempDirectory                = getTempDirectory;
+    exports.createTempDirectory             = createTempDirectory;
     exports.getBracketsSourceRoot           = getBracketsSourceRoot;
     exports.makeAbsolute                    = makeAbsolute;
     exports.resolveNativeFileSystemPath     = resolveNativeFileSystemPath;

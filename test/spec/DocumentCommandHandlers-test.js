@@ -72,6 +72,10 @@ define(function (require, exports, module) {
                 });
             }
 
+            // Working set behavior is sensitive to whether file lives in the project or outside it, so make
+            // the project root a known quantity.
+            SpecRunnerUtils.loadProjectInTestWindow(testPath);
+
             specCount++;
         });
 
@@ -100,12 +104,7 @@ define(function (require, exports, module) {
         
         
         describe("New Untitled File", function () {
-            beforeEach(function () {
-                // Working set behavior is sensitive to whether file lives in the project or outside it, so make
-                // the project root a known quantity.
-                SpecRunnerUtils.loadProjectInTestWindow(testPath);
-            });
-            
+
             /** @return {Array.<Document>} */
             function getWorkingSetDocs() {
                 return DocumentManager.getWorkingSet().map(function (file) {
@@ -751,15 +750,56 @@ define(function (require, exports, module) {
         });
 
         describe("Save As", function () {
-            it("should close the original file, reopen the saved file and add it to the Working Set", function () {
+            it("should close the original file, reopen the saved file and add select the new file in the project tree", function () {
                 var filePath    = testPath + "/test.js",
                     newFilename = "testname.js",
                     newFilePath = testPath + "/" + newFilename,
                     promise;
 
                 runs(function () {
+                    // Open the file, does not add to working set
                     promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
+                    waitsForDone(promise, "FILE_OPEN");
+                });
 
+                runs(function () {
+                    var currentDocument = DocumentManager.getCurrentDocument();
+                    expect(currentDocument.file.fullPath).toEqual(filePath);
+                });
+
+                runs(function () {
+                    spyOn(testWindow.brackets.fs, 'showSaveDialog').andCallFake(function (dialogTitle, initialPath, proposedNewName, callback) {
+                        callback(undefined, newFilePath);
+                    });
+
+                    promise = CommandManager.execute(Commands.FILE_SAVE_AS);
+                    waitsForDone(promise, "Provide new filename");
+                });
+
+                runs(function () {
+                    var currentDocument = DocumentManager.getCurrentDocument();
+                    expect(currentDocument.file.fullPath).toEqual(newFilePath);
+                });
+
+                runs(function () {
+                    // New file should not appear in working set
+                    expect(DocumentManager.findInWorkingSet(newFilePath)).toEqual(-1);
+                    
+                    // Verify file exists & clean it up
+                    expectAndDelete(newFilePath);
+                });
+            });
+
+            it("should close the original file, reopen the saved file outside the project and add it to the Working Set", function () {
+                var filePath    = testPath + "/test.js",
+                    newFilename = "testname.js",
+                    newFilePath = SpecRunnerUtils.getTempDirectory() + "/" + newFilename,
+                    promise;
+
+                SpecRunnerUtils.createTempDirectory();
+
+                runs(function () {
+                    promise = CommandManager.execute(Commands.FILE_OPEN, {fullPath: filePath});
                     waitsForDone(promise, "FILE_OPEN");
                 });
 
